@@ -1,35 +1,36 @@
-// main.js
 import { Header } from "./components/header.js";
 import { Footer } from "./components/footer.js";
 import { hero } from "./components/hero.js";
-import { Services } from "./components/services.js"; // match file name!
+import { Services } from "./components/Services.js"; // Make sure file name matches exactly
 import { Testimonials } from "./components/testimonials.js";
 import { Booking } from "./components/booking.js";
 import { FAQ } from "./components/faq.js";
 import { Contact } from "./components/contact.js";
 
 const app = document.getElementById("app");
-if (!app) {
-  console.error("[boot] #app not found");
-} else {
-  // Header
-  app.appendChild(Header());
 
-  // Main
-  const main = document.createElement("main");
-  main.className = "p-6";
-  main.append(
-    hero(), // id="home"
-    Services(), // id="services"
-    Testimonials(), // id="testimonials" (grid lives here)
-    Booking(), // id="booking"
-    FAQ(), // id="faq"
-    Contact() // id="contact"
-  );
-  app.appendChild(main);
+// Add Header
+app.appendChild(Header());
 
-  // Footer
-  app.appendChild(Footer());
+// Main content wrapper
+const main = document.createElement("main");
+main.className = "p-6";
 
-  console.log("[boot] App mounted");
-}
+// Add Hero section
+main.appendChild(hero());
+
+// Add Services section
+main.appendChild(Services());
+
+main.appendChild(Testimonials());
+
+main.appendChild(Booking()); // ⬅️ booking section here
+
+main.appendChild(FAQ());
+
+main.appendChild(Contact()); // ⬅️ Contact section here
+// Append main to app
+app.appendChild(main);
+
+// Add Footer
+app.appendChild(Footer());
