@@ -1,4 +1,4 @@
-// header.js (professional menu, no search)
+// header.js — S20 Ultra compact tuning (≤ 412px)
 export function Header() {
   // Dynamic viewport for mobile (prevents jump with URL bar)
   const setVH = () => {
@@ -11,12 +11,56 @@ export function Header() {
   const headerWrapper = document.createElement("div");
   headerWrapper.id = "site-header";
 
-  // ========== Top bar ==========
+  // ---- Compact CSS for ≤ 412px screens (S20 Ultra width & below) ----
+  const style = document.createElement("style");
+  style.textContent = `
+    /* Avoid horizontal scroll from tiny rounding/layout */
+    html, body { overflow-x: hidden; }
+
+    @media (max-width: 412px) {
+      /* Tighten the top bar line height and font sizes a touch */
+      #site-header .topbar-text { font-size: 12px; }
+      #site-header .brand-title   { font-size: clamp(14px, 3.8vw, 16px); }
+      #site-header .brand-tagline { font-size: 11px; }
+
+      /* Compact logo block */
+      #site-header .brand-mark { width: 40px; height: 40px; }
+      #site-header .brand-mark span { font-size: 18px; }
+
+      /* Header padding & height */
+      #site-header .hdr-row { height: 56px; }
+      #site-header .hdr-pad { padding-left: 12px; padding-right: 12px; }
+
+      /* Hamburger hit area stays large, but icon text smaller */
+      #site-header #menuBtn span { font-size: 18px; }
+
+      /* Mobile sheet: use full width on small screens for breathing room */
+      #site-header .mobile-panel { width: 100vw !important; max-width: 100vw !important; }
+
+      /* Menu item sizing: comfortable taps without wasting space */
+      #site-header .mobile-item { padding: 12px 12px; font-size: 16px; } /* >=16px avoids zoom */
+      #site-header .mobile-cta  { padding: 12px 14px; font-size: 16px; }
+
+      /* Reduce extra margins */
+      #site-header .mobile-block-gap { margin-top: 8px !important; }
+      #site-header .mobile-brand-row { gap: 10px; }
+      #site-header .mobile-actions { gap: 8px; }
+    }
+
+    /* Extra safety for very small widths (≤ 360px) */
+    @media (max-width: 360px) {
+      #site-header .brand-title { font-size: 14px; }
+      #site-header .brand-tagline { display: none; } /* hide tagline if space is tight */
+    }
+  `;
+  headerWrapper.appendChild(style);
+
+  // ===== Top bar =====
   const topbar = document.createElement("div");
   topbar.className = "hidden md:block bg-slate-900 text-white";
   topbar.innerHTML = `
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-10 items-center justify-between text-xs sm:text-sm">
+      <div class="flex h-10 items-center justify-between text-xs sm:text-sm topbar-text">
         <ul class="flex items-center gap-6" aria-label="Contact details">
           <li class="flex items-center gap-2">
             <span aria-hidden="true">📞</span>
@@ -35,25 +79,25 @@ export function Header() {
     </div>
   `;
 
-  // ========== Main header ==========
+  // ===== Header & Nav =====
   const header = document.createElement("header");
   header.className =
     "sticky top-0 z-50 w-full border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm";
   header.innerHTML = `
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-16 sm:h-20 items-center justify-between">
+    <div class="mx-auto max-w-7xl hdr-pad px-4 sm:px-6 lg:px-8">
+      <div class="flex hdr-row h-16 sm:h-20 items-center justify-between">
         <!-- Brand -->
         <a href="#home" class="group inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg">
-          <span class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+          <span class="brand-mark flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
             <span class="font-bold text-white text-lg sm:text-xl">R</span>
           </span>
-          <span class="flex flex-col">
-            <span class="font-semibold tracking-tight text-base sm:text-xl text-slate-900 leading-none">Reboot IT Solutions</span>
-            <span class="text-[11px] sm:text-xs text-slate-600 leading-none">Professional IT Services</span>
+          <span class="flex flex-col min-w-0">
+            <span class="brand-title font-semibold tracking-tight text-base sm:text-xl text-slate-900 leading-none truncate">Reboot IT Solutions</span>
+            <span class="brand-tagline text-[11px] sm:text-xs text-slate-600 leading-none">Professional IT Services</span>
           </span>
         </a>
 
-        <!-- Desktop primary nav -->
+        <!-- Desktop nav -->
         <nav aria-label="Primary" class="hidden lg:flex items-center gap-2">
           ${["home", "services", "booking", "faq", "contact"]
             .map(
@@ -105,7 +149,7 @@ export function Header() {
 
       <!-- panel -->
       <div role="dialog" aria-modal="true" aria-label="Mobile navigation"
-           class="absolute right-0 top-0 h-[calc(var(--vh)*100)] w-full sm:w-80 bg-white shadow-xl
+           class="mobile-panel absolute right-0 top-0 h-[calc(var(--vh)*100)] w-full sm:w-80 bg-white shadow-xl
                   translate-x-full transition-transform duration-250 will-change-transform
                   pt-[max(env(safe-area-inset-top),16px)] pb-[max(env(safe-area-inset-bottom),16px)]">
         <div class="px-5">
@@ -117,7 +161,7 @@ export function Header() {
           </div>
 
           <!-- Brand echo -->
-          <div class="mt-3 flex items-center gap-3 border-b border-slate-100 pb-3">
+          <div class="mobile-brand-row mt-3 flex items-center gap-3 border-b border-slate-100 pb-3">
             <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">R</span>
             <div class="min-w-0">
               <p class="text-sm font-medium text-slate-900 truncate">Reboot IT Solutions</p>
@@ -126,7 +170,7 @@ export function Header() {
           </div>
 
           <!-- Nav -->
-          <nav class="mt-2" aria-label="Primary mobile">
+          <nav class="mobile-block-gap mt-3" aria-label="Primary mobile">
             <ul class="flex flex-col divide-y divide-slate-100">
               ${["home", "services", "booking", "faq", "contact"]
                 .map(
@@ -135,7 +179,7 @@ export function Header() {
                   <button type="button"
                           role="menuitem"
                           data-target="${id}"
-                          class="w-full text-left px-2 py-4 text-[17px] rounded-md hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                          class="mobile-item w-full text-left px-3 py-4 text-[17px] rounded-md hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
                     ${
                       id === "faq"
                         ? "About"
@@ -150,13 +194,13 @@ export function Header() {
           </nav>
 
           <!-- Actions -->
-          <div class="mt-3 grid grid-cols-1 gap-2">
+          <div class="mobile-actions mt-3 grid grid-cols-1 gap-2">
             <button type="button" data-target="contact"
-                    class="px-4 py-4 rounded-md border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                    class="mobile-cta px-4 py-4 rounded-md border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
               Get&nbsp;Quote
             </button>
             <button type="button" data-target="booking"
-                    class="px-4 py-4 rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                    class="mobile-cta px-4 py-4 rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
               Free&nbsp;Consultation
             </button>
           </div>
@@ -173,13 +217,11 @@ export function Header() {
   headerWrapper.appendChild(topbar);
   headerWrapper.appendChild(header);
 
-  // ========== Behavior ==========
-  // Year
+  // ===== Behavior =====
   const y = new Date().getFullYear();
   const yearSpan = headerWrapper.querySelector("#yearSpan");
   if (yearSpan) yearSpan.textContent = y;
 
-  // Motion preference-aware smooth scroll
   const prefersReduced = window.matchMedia(
     "(prefers-reduced-motion: reduce)"
   ).matches;
@@ -191,15 +233,13 @@ export function Header() {
     if (section) section.scrollIntoView(scrollOpts);
   };
 
-  // Shared handlers (desktop + mobile)
   headerWrapper.querySelectorAll("[data-target]").forEach((btn) => {
     btn.addEventListener("click", () => {
       scrollToTarget(btn.getAttribute("data-target"));
-      closeMobileMenu(); // no-op on desktop
+      closeMobileMenu();
     });
   });
 
-  // Mobile menu controls
   const menuBtn = headerWrapper.querySelector("#menuBtn");
   const mobileMenu = headerWrapper.querySelector("#mobileMenu");
   const panel = mobileMenu.querySelector('[role="dialog"]');
