@@ -1,4 +1,4 @@
-// header.js — S20 Ultra compact tuning (≤ 412px)
+// header.js — S20 Ultra compact tuning (≤ 412px) + centered nav
 export function Header() {
   // Dynamic viewport for mobile (prevents jump with URL bar)
   const setVH = () => {
@@ -16,6 +16,12 @@ export function Header() {
   style.textContent = `
     /* Avoid horizontal scroll from tiny rounding/layout */
     html, body { overflow-x: hidden; }
+
+    /* Ensure desktop nav is truly centered regardless of logo/CTA widths */
+    @media (min-width: 1024px) {
+      #site-header .hdr-grid { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
+      #site-header .nav-desktop { justify-content: center; }
+    }
 
     @media (max-width: 412px) {
       /* Tighten the top bar line height and font sizes a touch */
@@ -85,7 +91,8 @@ export function Header() {
     "sticky top-0 z-50 w-full border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm";
   header.innerHTML = `
     <div class="mx-auto max-w-7xl hdr-pad px-4 sm:px-6 lg:px-8">
-      <div class="flex hdr-row h-16 sm:h-20 items-center justify-between">
+      <!-- Flex on mobile/tablet; switches to 3-col grid on lg+ via CSS above -->
+      <div class="flex hdr-row h-16 sm:h-20 items-center justify-between lg:justify-normal hdr-grid">
         <!-- Brand -->
         <a href="#home" class="group inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg">
           <span class="brand-mark flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
@@ -97,8 +104,8 @@ export function Header() {
           </span>
         </a>
 
-        <!-- Desktop nav -->
-        <nav aria-label="Primary" class="hidden lg:flex items-center gap-2">
+        <!-- Desktop nav (centered) -->
+        <nav aria-label="Primary" class="hidden lg:flex nav-desktop items-center gap-4">
           ${["home", "services", "booking", "faq", "contact"]
             .map(
               (id) => `
@@ -116,7 +123,7 @@ export function Header() {
             .join("")}
         </nav>
 
-        <!-- Desktop CTAs -->
+        <!-- Desktop CTAs (right column) -->
         <div class="hidden lg:flex items-center gap-3">
           <button type="button" data-target="contact"
                   class="px-4 py-2 rounded-md border border-slate-300 text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
@@ -175,11 +182,11 @@ export function Header() {
               ${["home", "services", "booking", "faq", "contact"]
                 .map(
                   (id) => `
-                <li>
+                <li class="flex justify-center">  <!-- center the row -->
                   <button type="button"
                           role="menuitem"
                           data-target="${id}"
-                          class="mobile-item w-full text-left px-3 py-4 text-[17px] rounded-md hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                          class="mobile-item w-full max-w-sm text-center px-3 py-4 text-[17px] rounded-md hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
                     ${
                       id === "faq"
                         ? "About"
@@ -194,19 +201,19 @@ export function Header() {
           </nav>
 
           <!-- Actions -->
-          <div class="mobile-actions mt-3 grid grid-cols-1 gap-2">
+          <div class="mobile-actions mt-3 grid grid-cols-1 gap-2 place-items-center">
             <button type="button" data-target="contact"
-                    class="mobile-cta px-4 py-4 rounded-md border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                    class="mobile-cta w-full max-w-sm px-4 py-4 rounded-md border border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
               Get&nbsp;Quote
             </button>
             <button type="button" data-target="booking"
-                    class="mobile-cta px-4 py-4 rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                    class="mobile-cta w-full max-w-sm px-4 py-4 rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
               Free&nbsp;Consultation
             </button>
           </div>
 
           <!-- Footer meta -->
-          <div class="mt-4 text-xs text-slate-500">
+          <div class="mt-4 text-xs text-slate-500 text-center">
             <p class="leading-5">© <span id="yearSpan"></span> Reboot IT Solutions.</p>
           </div>
         </div>
