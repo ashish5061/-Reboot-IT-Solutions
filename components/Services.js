@@ -1,4 +1,4 @@
-// components/services.js
+// components/services.js — professional, mobile-first, accessible
 export function Services() {
   // --- helpers ---
   const el = (tag, className = "", text = "") => {
@@ -17,6 +17,7 @@ export function Services() {
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
     svg.setAttribute("class", className);
+    svg.setAttribute("aria-hidden", "true"); // decorative
 
     const p = (d) => {
       const path = document.createElementNS(
@@ -68,7 +69,7 @@ export function Services() {
         );
         break;
       default:
-        p("M4 12h16"); // fallback line
+        p("M4 12h16");
     }
     return svg;
   };
@@ -170,45 +171,70 @@ export function Services() {
     },
   ];
 
-  // --- root ---
+  // --- section root + local styles ---
   const section = el(
     "section",
-    "py-24 bg-gradient-to-b from-slate-50 to-white"
+    "py-20 sm:py-24 bg-gradient-to-b from-slate-50 to-white"
   );
   section.id = "services";
 
-  const container = el("div", "container mx-auto px-6");
+  // local fluid type + compact rules
+  const style = document.createElement("style");
+  style.textContent = `
+    #services .h-title { font-size: clamp(1.75rem, 3.5vw, 3rem); line-height: 1.1; letter-spacing: -0.015em; }
+    #services .h-sub   { font-size: clamp(1rem, 2.1vw, 1.25rem); line-height: 1.6; }
+
+    @media (max-width: 412px) {
+      #services .grid-main { gap: 16px; }
+      #services .card-pad { padding: 18px; }
+      #services .badge { padding: 6px 10px; font-size: 12px; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #services .reveal { opacity: 0; transform: translateY(10px); animation: s-reveal 500ms ease-out both; }
+      #services .reveal:nth-child(2) { animation-delay: 80ms; }
+      #services .reveal:nth-child(3) { animation-delay: 160ms; }
+      @keyframes s-reveal { to { opacity: 1; transform: translateY(0); } }
+    }
+  `;
+  section.appendChild(style);
+
+  const container = el("div", "max-w-7xl mx-auto px-6 sm:px-8");
   section.appendChild(container);
 
   // header
-  const header = el("div", "text-center mb-20");
+  const header = el("header", "text-center mb-12 sm:mb-16");
   const badge = el(
     "span",
-    "inline-block mb-4 px-4 py-2 rounded bg-slate-100 text-slate-700 text-sm font-semibold border"
+    "badge inline-block mb-4 px-4 py-2 rounded bg-slate-100 text-slate-700 text-sm font-semibold border"
   );
   badge.textContent = "Our Services";
   const h2 = el(
     "h2",
-    "mb-6 text-4xl md:text-5xl font-bold text-slate-900",
+    "h-title mb-4 font-bold text-slate-900",
     "Comprehensive IT Solutions"
   );
   const p = el(
     "p",
-    "text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed",
+    "h-sub text-slate-600 max-w-3xl mx-auto",
     "From small business support to enterprise infrastructure management, we deliver scalable technology solutions that grow with your business."
   );
   header.append(badge, h2, p);
   container.appendChild(header);
 
   // main services grid
-  const grid = el("div", "grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16");
-  services.forEach((svc) => {
+  const grid = el(
+    "div",
+    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 grid-main"
+  );
+  services.forEach((svc, idx) => {
     const card = el(
-      "div",
-      "group transition-all duration-300 border-0 shadow-lg hover:shadow-2xl bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden"
+      "article",
+      "group transition-all duration-300 border-0 shadow-lg hover:shadow-2xl bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden reveal"
     );
+    card.setAttribute("aria-labelledby", `svc-${idx}-title`);
 
-    const cardHeader = el("div", "p-6 pb-4");
+    const cardHeader = el("div", "card-pad p-6 pb-4");
     const topRow = el("div", "flex items-center justify-between mb-4");
 
     const iconWrap = el(
@@ -225,28 +251,34 @@ export function Services() {
 
     topRow.append(iconWrap, tier);
 
-    const title = el("h3", "text-xl mb-3 font-semibold", svc.title);
-    const desc = el("p", "text-slate-600 leading-relaxed", svc.description);
+    const title = el("h3", "text-xl mb-2 font-semibold text-slate-900");
+    title.id = `svc-${idx}-title`;
+    title.textContent = svc.title;
+
+    const desc = el("p", "text-slate-600 leading-relaxed");
+    desc.textContent = svc.description;
 
     cardHeader.append(topRow, title, desc);
 
     const cardContent = el("div", "px-6 pt-0 pb-6");
-    const featuresWrap = el("div", "space-y-3 mb-6");
+    const featuresWrap = el("ul", "space-y-3 mb-6");
     svc.features.forEach((f) => {
-      const row = el("div", "flex items-center text-sm text-slate-600");
+      const li = el("li", "flex items-center text-sm text-slate-600");
       const dot = el(
-        "div",
+        "span",
         "h-2 w-2 rounded-full bg-gradient-to-r from-green-400 to-green-500 mr-3 flex-shrink-0"
       );
-      row.append(dot, document.createTextNode(f));
-      featuresWrap.appendChild(row);
+      dot.setAttribute("aria-hidden", "true");
+      li.append(dot, document.createTextNode(f));
+      featuresWrap.appendChild(li);
     });
 
     const btn = el(
       "button",
-      "w-full border rounded-md px-3 py-2 text-sm font-medium text-slate-800 hover:bg-blue-600 hover:text-white transition-colors"
+      "w-full border rounded-md px-3 py-3 text-sm font-medium text-slate-800 hover:bg-blue-600 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
     );
     btn.textContent = "Learn More";
+    btn.setAttribute("aria-label", `Learn more about ${svc.title}`);
 
     cardContent.append(featuresWrap, btn);
     card.append(cardHeader, cardContent);
@@ -255,20 +287,20 @@ export function Services() {
   container.appendChild(grid);
 
   // additional services
-  const addWrap = el("div", "max-w-4xl mx-auto");
+  const addWrap = el("div", "max-w-4xl mx-auto mt-14 sm:mt-16");
   const addTitle = el(
     "h3",
-    "text-2xl font-bold text-center mb-8 text-slate-900",
+    "text-2xl font-bold text-center mb-6 sm:mb-8 text-slate-900",
     "Additional Services"
   );
-  const addGrid = el("div", "grid md:grid-cols-2 gap-6");
+  const addGrid = el("div", "grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6");
 
-  additionalServices.forEach((svc) => {
+  additionalServices.forEach((svc, i) => {
     const card = el(
-      "div",
+      "article",
       "p-6 rounded-2xl bg-white shadow-sm hover:shadow-lg transition-shadow border-0"
     );
-    const row = el("div", "flex items-center space-x-4");
+    const row = el("div", "flex items-center gap-4");
 
     const iconBox = el(
       "div",
@@ -276,8 +308,8 @@ export function Services() {
     );
     iconBox.appendChild(createIcon(svc.icon, "h-6 w-6 text-slate-600"));
 
-    const col = el("div", "flex-1");
-    const t = el("h4", "font-semibold mb-1", svc.title);
+    const col = el("div", "flex-1 min-w-0");
+    const t = el("h4", "font-semibold mb-1 text-slate-900", svc.title);
     const d = el("p", "text-sm text-slate-600", svc.description);
     col.append(t, d);
 
@@ -290,22 +322,32 @@ export function Services() {
   container.appendChild(addWrap);
 
   // CTA
-  const ctaWrap = el("div", "text-center mt-16");
+  const ctaWrap = el("div", "text-center mt-12 sm:mt-16");
   const cta = el(
     "div",
-    "bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 text-white max-w-3xl mx-auto"
+    "bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 sm:p-8 text-white max-w-3xl mx-auto"
   );
-  const ctaH = el("h3", "text-2xl font-bold mb-4", "Need a Custom Solution?");
+  const ctaH = el(
+    "h3",
+    "text-xl sm:text-2xl font-bold mb-3 sm:mb-4",
+    "Need a Custom Solution?"
+  );
   const ctaP = el(
     "p",
-    "text-blue-100 mb-6 leading-relaxed",
+    "text-blue-100 mb-5 sm:mb-6 leading-relaxed",
     "Our IT consultants will work with you to design a technology strategy that aligns with your business objectives."
   );
   const ctaBtn = el(
     "button",
-    "inline-flex items-center justify-center rounded-md px-5 py-3 font-semibold bg-white text-blue-600 hover:bg-slate-100 transition-colors"
+    "inline-flex items-center justify-center rounded-md px-5 py-3 font-semibold bg-white text-blue-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100 transition-colors"
   );
   ctaBtn.textContent = "Schedule Consultation";
+  ctaBtn.setAttribute("aria-label", "Schedule a consultation");
+  ctaBtn.addEventListener("click", () => {
+    document
+      .getElementById("booking")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   cta.append(ctaH, ctaP, ctaBtn);
   ctaWrap.appendChild(cta);

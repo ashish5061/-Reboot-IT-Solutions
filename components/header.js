@@ -1,4 +1,4 @@
-// header.js — S20 Ultra compact tuning (≤ 412px) + centered nav
+// header.js — S20 Ultra compact tuning (≤ 412px) + centered nav (refined)
 export function Header() {
   // Dynamic viewport for mobile (prevents jump with URL bar)
   const setVH = () => {
@@ -11,16 +11,30 @@ export function Header() {
   const headerWrapper = document.createElement("div");
   headerWrapper.id = "site-header";
 
-  // ---- Compact CSS for ≤ 412px screens (S20 Ultra width & below) ----
+  // ---- Compact CSS + centering + offsets ----
   const style = document.createElement("style");
   style.textContent = `
     /* Avoid horizontal scroll from tiny rounding/layout */
     html, body { overflow-x: hidden; }
 
+    /* Smooth scroll everywhere, but respect reduced motion */
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+    /* Offset anchor jumps for the sticky header */
+    [id] { scroll-margin-top: 88px; }
+    @media (max-width: 640px) { [id] { scroll-margin-top: 64px; } }
+
     /* Ensure desktop nav is truly centered regardless of logo/CTA widths */
     @media (min-width: 1024px) {
       #site-header .hdr-grid { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
       #site-header .nav-desktop { justify-content: center; }
+    }
+
+    /* Respect reduced motion for panel transitions */
+    @media (prefers-reduced-motion: reduce) {
+      #site-header .mobile-panel,
+      #site-header #mobileMenu { transition: none !important; }
     }
 
     @media (max-width: 412px) {
@@ -40,10 +54,10 @@ export function Header() {
       /* Hamburger hit area stays large, but icon text smaller */
       #site-header #menuBtn span { font-size: 18px; }
 
-      /* Mobile sheet: use full width on small screens for breathing room */
+      /* Mobile sheet: full width on very small screens */
       #site-header .mobile-panel { width: 100vw !important; max-width: 100vw !important; }
 
-      /* Menu item sizing: comfortable taps without wasting space */
+      /* Menu item sizing: comfortable taps */
       #site-header .mobile-item { padding: 12px 12px; font-size: 16px; } /* >=16px avoids zoom */
       #site-header .mobile-cta  { padding: 12px 14px; font-size: 16px; }
 
@@ -94,7 +108,7 @@ export function Header() {
       <!-- Flex on mobile/tablet; switches to 3-col grid on lg+ via CSS above -->
       <div class="flex hdr-row h-16 sm:h-20 items-center justify-between lg:justify-normal hdr-grid">
         <!-- Brand -->
-        <a href="#home" class="group inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg">
+        <a href="#home" data-target="home" class="group inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg">
           <span class="brand-mark flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
             <span class="font-bold text-white text-lg sm:text-xl">R</span>
           </span>
@@ -149,7 +163,7 @@ export function Header() {
 
     <!-- Mobile menu (sheet) -->
     <div id="mobileMenu"
-         class="fixed inset-0 z-[60] isolate pointer-events-none opacity-0 invisible transition-opacity duration-200"
+         class="fixed inset-0 z-[60] isolate pointer-events-none opacity-0 invisible transition-opacity duration-300"
          aria-hidden="true">
       <!-- overlay -->
       <div class="absolute inset-0 bg-slate-900/50"></div>
@@ -157,7 +171,7 @@ export function Header() {
       <!-- panel -->
       <div role="dialog" aria-modal="true" aria-label="Mobile navigation"
            class="mobile-panel absolute right-0 top-0 h-[calc(var(--vh)*100)] w-full sm:w-80 bg-white shadow-xl
-                  translate-x-full transition-transform duration-250 will-change-transform
+                  translate-x-full transition-transform duration-300 will-change-transform
                   pt-[max(env(safe-area-inset-top),16px)] pb-[max(env(safe-area-inset-bottom),16px)]">
         <div class="px-5">
           <div class="flex items-center justify-between">
@@ -182,7 +196,7 @@ export function Header() {
               ${["home", "services", "booking", "faq", "contact"]
                 .map(
                   (id) => `
-                <li class="flex justify-center">  <!-- center the row -->
+                <li class="flex justify-center">
                   <button type="button"
                           role="menuitem"
                           data-target="${id}"
@@ -240,9 +254,12 @@ export function Header() {
     if (section) section.scrollIntoView(scrollOpts);
   };
 
+  // Smooth scroll for all nav triggers (including brand)
   headerWrapper.querySelectorAll("[data-target]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      scrollToTarget(btn.getAttribute("data-target"));
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = btn.getAttribute("data-target");
+      scrollToTarget(id);
       closeMobileMenu();
     });
   });
@@ -278,7 +295,7 @@ export function Header() {
     menuBtn.setAttribute("aria-expanded", "false");
     document.documentElement.style.overflow = "";
     if (lastFocus) lastFocus.focus();
-    setTimeout(() => mobileMenu.classList.add("invisible"), 200);
+    setTimeout(() => mobileMenu.classList.add("invisible"), 300); // match duration-300
   }
 
   menuBtn.addEventListener("click", openMobileMenu);

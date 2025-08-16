@@ -1,4 +1,4 @@
-// components/booking.js
+// components/booking.js — professional, mobile-first, a11y, S20 Ultra tuned
 export function Booking() {
   // ----- Data -----
   const serviceTiers = [
@@ -58,6 +58,7 @@ export function Booking() {
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
     svg.setAttribute("class", cls);
+    svg.setAttribute("aria-hidden", "true");
 
     const P = (d) => {
       const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -107,7 +108,28 @@ export function Booking() {
     return svg;
   };
 
-  // ----- State (vanilla) -----
+  // Validation helpers
+  const err = (id) => {
+    const s = el("p", "mt-1 text-sm text-red-600 hidden");
+    s.id = id;
+    return s;
+  };
+  const setInvalid = (input, msgEl, msg) => {
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", msgEl.id);
+    msgEl.textContent = msg;
+    msgEl.classList.remove("hidden");
+    input.classList.add("border-red-500", "ring-1", "ring-red-500");
+  };
+  const clearInvalid = (input, msgEl) => {
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
+    msgEl.textContent = "";
+    msgEl.classList.add("hidden");
+    input.classList.remove("border-red-500", "ring-1", "ring-red-500");
+  };
+
+  // ----- State -----
   let selectedTier = "professional";
   const formData = {
     name: "",
@@ -122,18 +144,31 @@ export function Booking() {
     message: "",
   };
 
-  // ----- Section root -----
-  const section = el(
-    "section",
-    "py-24 bg-gradient-to-b from-white to-slate-50"
-  );
+  // ----- Section root + local style -----
+  const section = el("section", "bg-gradient-to-b from-white to-slate-50");
   section.id = "booking";
 
-  const container = el("div", "container mx-auto px-6");
+  const style = document.createElement("style");
+  style.textContent = `
+    #booking .h-title { font-size: clamp(1.75rem, 3.5vw, 3rem); line-height: 1.1; letter-spacing: -0.015em; }
+    #booking .h-sub   { font-size: clamp(1rem, 2.1vw, 1.25rem); line-height: 1.6; }
+    #booking .card-focus { outline: none; }
+    #booking .card-focus:focus-visible { box-shadow: 0 0 0 3px rgba(37,99,235,.6); border-color: rgb(37,99,235); }
+
+    @media (max-width: 412px) {
+      #booking .grid-tiers { gap: 14px; }
+      #booking .grid-two  { gap: 18px; }
+      #booking .p-card    { padding: 18px; }
+      #booking .btn-lg    { padding-top: 16px; padding-bottom: 16px; }
+    }
+  `;
+  section.appendChild(style);
+
+  const container = el("div", "container mx-auto px-6 py-20 sm:py-24");
   section.appendChild(container);
 
   // Header
-  const header = el("div", "text-center mb-16");
+  const header = el("header", "text-center mb-12 sm:mb-16");
   const badge = el(
     "span",
     "inline-block mb-4 px-4 py-2 rounded bg-slate-100 text-slate-700 border text-sm font-semibold",
@@ -141,52 +176,62 @@ export function Booking() {
   );
   const h2 = el(
     "h2",
-    "mb-6 text-4xl md:text-5xl font-bold text-slate-900",
+    "h-title font-bold text-slate-900",
     "Schedule Your IT Consultation"
   );
   const sub = el(
     "p",
-    "text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed",
+    "h-sub text-slate-600 max-w-3xl mx-auto mt-3",
     "Get expert IT guidance tailored to your business needs. Our certified consultants will assess your current infrastructure and recommend optimal solutions."
   );
   header.append(badge, h2, sub);
   container.appendChild(header);
 
-  // ----- Tiers -----
-  const tiersWrap = el("div", "max-w-7xl mx-auto mb-12");
-  const tiersTitle = el(
-    "h3",
-    "text-2xl font-bold text-center mb-8 text-slate-900",
+  // ----- Tiers: accessible radio group -----
+  const tiersWrap = el("section", "max-w-7xl mx-auto mb-10 sm:mb-12");
+  const fs = el("fieldset", "border-0");
+  const lgd = el(
+    "legend",
+    "text-2xl font-bold text-center mb-6 text-slate-900",
     "Choose Your Service Level"
   );
-  const tiersGrid = el("div", "grid md:grid-cols-3 gap-6");
+  fs.appendChild(lgd);
 
+  const tiersGrid = el(
+    "div",
+    "grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 grid-tiers"
+  );
   const tierCards = {};
+  const radioName = "service-tier";
 
-  serviceTiers.forEach((t) => {
+  serviceTiers.forEach((t, idx) => {
     const card = el(
-      "div",
-      "cursor-pointer transition-all duration-200 rounded-2xl bg-white border shadow-sm hover:shadow-md"
+      "article",
+      "cursor-pointer transition-all duration-200 rounded-2xl bg-white border shadow-sm hover:shadow-md p-card card-focus"
     );
+    card.tabIndex = 0;
+    card.setAttribute("role", "radio");
+    card.setAttribute("aria-checked", selectedTier === t.id ? "true" : "false");
+    card.setAttribute("aria-labelledby", `tier-${t.id}-title`);
+    card.setAttribute("aria-describedby", `tier-${t.id}-desc`);
 
     const setActive = (active) => {
       card.className =
         "cursor-pointer transition-all duration-200 rounded-2xl bg-white " +
-        (active ? "ring-2 ring-blue-600 shadow-lg" : "border hover:shadow-md");
-      if (t.popular) {
-        card.className += " border-blue-600";
-      }
+        (active
+          ? "ring-2 ring-blue-600 shadow-lg p-card"
+          : "border hover:shadow-md p-card");
+      card.setAttribute("aria-checked", active ? "true" : "false");
     };
 
-    // header
-    const ch = el("div", "p-6 text-center pb-4");
+    const header = el("div", "p-6 pb-4 text-center");
     if (t.popular) {
       const popular = el(
         "span",
         "inline-block mb-3 px-3 py-1 text-xs rounded bg-blue-600 text-white",
         "Most Popular"
       );
-      ch.appendChild(popular);
+      header.appendChild(popular);
     }
     const iconWrap = el(
       "div",
@@ -194,49 +239,82 @@ export function Booking() {
     );
     iconWrap.appendChild(icon(t.icon));
 
-    const title = el("div", "text-xl font-semibold", t.name);
+    const title = el("h3", "text-xl font-semibold", t.name);
+    title.id = `tier-${t.id}-title`;
     const price = el("div", "text-2xl font-bold text-blue-600 mb-2", t.price);
     const desc = el("p", "text-slate-600 text-sm", t.description);
-    ch.append(iconWrap, title, price, desc);
+    desc.id = `tier-${t.id}-desc`;
+    header.append(iconWrap, title, price, desc);
 
-    // content
-    const cc = el("div", "px-6 pb-6 pt-0");
-    const list = el("div", "space-y-2");
+    const content = el("div", "px-6 pb-6 pt-0");
+    const list = el("ul", "space-y-2");
     t.features.forEach((f) => {
-      const row = el("div", "flex items-center text-sm text-slate-600");
+      const li = el("li", "flex items-center text-sm text-slate-600");
       const dot = el(
-        "div",
+        "span",
         "h-1.5 w-1.5 rounded-full bg-green-500 mr-3 flex-shrink-0"
       );
-      row.append(dot, document.createTextNode(f));
-      list.appendChild(row);
+      dot.setAttribute("aria-hidden", "true");
+      li.append(dot, document.createTextNode(f));
+      list.appendChild(li);
     });
-    cc.appendChild(list);
+    content.appendChild(list);
 
-    card.append(ch, cc);
-    setActive(selectedTier === t.id);
-    card.addEventListener("click", () => {
+    // Visually hidden native radio for form semantics
+    const radio = el("input");
+    radio.type = "radio";
+    radio.name = radioName;
+    radio.value = t.id;
+    radio.className = "sr-only";
+    if (t.id === selectedTier) radio.checked = true;
+
+    const selectThis = () => {
       selectedTier = t.id;
       Object.values(tierCards).forEach((fn) => fn(false));
       setActive(true);
+      radio.checked = true;
+    };
+
+    card.addEventListener("click", selectThis);
+    card.addEventListener("keydown", (e) => {
+      // Space/Enter select; Arrow keys move focus
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        selectThis();
+      } else if (
+        ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(e.key)
+      ) {
+        e.preventDefault();
+        const cards = Array.from(tiersGrid.querySelectorAll("[role='radio']"));
+        const i = cards.indexOf(card);
+        const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+        const next = (i + dir + cards.length) % cards.length;
+        cards[next].focus();
+      }
     });
 
     tierCards[t.id] = setActive;
+    setActive(t.id === selectedTier);
+
+    card.append(header, content, radio);
     tiersGrid.appendChild(card);
   });
 
-  tiersWrap.append(tiersTitle, tiersGrid);
+  fs.appendChild(tiersGrid);
+  tiersWrap.appendChild(fs);
   container.appendChild(tiersWrap);
 
   // ----- Two-column area -----
-  const twoCol = el("div", "grid lg:grid-cols-2 gap-12 items-start");
+  const twoCol = el(
+    "div",
+    "grid lg:grid-cols-2 gap-10 sm:gap-12 items-start grid-two"
+  );
   container.appendChild(twoCol);
 
   // Left: highlights
   const highlights = el("div", "space-y-8");
-
   const highlight = (icn, title, text, tone = "primary") => {
-    const row = el("div", "flex items-start space-x-4");
+    const row = el("div", "flex items-start gap-4");
     const bg = tone === "accent" ? "bg-green-100" : "bg-blue-100";
     const color = tone === "accent" ? "text-green-600" : "text-blue-600";
 
@@ -279,7 +357,7 @@ export function Booking() {
     "div",
     "rounded-2xl p-6 bg-gradient-to-r from-slate-50 to-blue-50 border-0"
   );
-  const gRow = el("div", "flex items-center space-x-3");
+  const gRow = el("div", "flex items-center gap-3");
   const gIcon = el("div", "h-6 w-6");
   gIcon.appendChild(icon("Phone", "h-6 w-6 text-blue-600"));
   const gCol = el("div");
@@ -297,7 +375,7 @@ export function Booking() {
 
   twoCol.appendChild(highlights);
 
-  // Right: form
+  // ----- Right: form -----
   const formCard = el("div", "shadow-xl border-0 bg-white rounded-2xl");
   const formHeader = el("div", "p-6 pb-0");
   formHeader.append(
@@ -311,75 +389,106 @@ export function Booking() {
   const formBody = el("div", "p-6");
 
   const form = el("form", "space-y-6");
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const payload = { ...formData, tier: selectedTier };
-    console.log("Booking submitted:", payload);
-    alert(
-      "Consultation request submitted! Our team will contact you within 2 business hours to schedule your appointment."
-    );
-    form.reset();
-  });
+  form.setAttribute("novalidate", "true");
 
-  const grid2 = el("div", "grid grid-cols-2 gap-4");
-  const field = (id, label, attrs = {}) => {
-    const wrap = el("div", "space-y-2");
-    const lab = el("label", "", label);
+  // Live region for success/error summary
+  const formAlert = el("div", "hidden mb-4 rounded-md p-4");
+  formAlert.id = "booking-status";
+  formAlert.setAttribute("role", "status");
+  formAlert.setAttribute("aria-live", "polite");
+  formBody.appendChild(formAlert);
+
+  const grid2 = el("div", "grid grid-cols-1 sm:grid-cols-2 gap-4");
+
+  const field = (id, label, attrs = {}, type = "input") => {
+    const wrap = el("div", "space-y-1");
+    const lab = el("label", "text-sm font-medium text-slate-700", label);
     lab.setAttribute("for", id);
-    const input = el("input", "w-full rounded-md border px-3 py-2");
+    const input =
+      type === "textarea"
+        ? document.createElement("textarea")
+        : document.createElement("input");
+    input.className =
+      "w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600";
     input.id = id;
-    Object.entries(attrs).forEach(([k, v]) => input.setAttribute(k, v));
-    input.addEventListener("input", (e) => {
-      formData[id] = e.target.value;
+    if (type === "textarea") input.rows = attrs.rows || 4;
+    Object.entries(attrs).forEach(([k, v]) => {
+      if (v === "") input.setAttribute(k, "");
+      else input.setAttribute(k, v);
     });
-    wrap.append(lab, input);
-    return wrap;
+    const msg = err(`${id}-error`);
+    wrap.append(lab, input, msg);
+    return { wrap, input, msg };
   };
 
-  grid2.append(
-    field("name", "Full Name *", { placeholder: "John Smith", required: "" }),
-    field("email", "Business Email *", {
-      type: "email",
-      placeholder: "john@company.com",
-      required: "",
-    })
-  );
+  const fName = field("name", "Full Name *", {
+    placeholder: "John Smith",
+    required: "",
+    autocomplete: "name",
+  });
+  const fEmail = field("email", "Business Email *", {
+    type: "email",
+    placeholder: "john@company.com",
+    required: "",
+    autocomplete: "email",
+    inputmode: "email",
+  });
+  grid2.append(fName.wrap, fEmail.wrap);
 
-  const grid2b = el("div", "grid grid-cols-2 gap-4");
-  grid2b.append(
-    field("phone", "Phone Number *", {
-      type: "tel",
-      placeholder: "(555) 123-4567",
-      required: "",
-    }),
-    field("company", "Company Name *", {
-      placeholder: "Your Company Inc.",
-      required: "",
-    })
-  );
+  const grid2b = el("div", "grid grid-cols-1 sm:grid-cols-2 gap-4");
+  const fPhone = field("phone", "Phone Number *", {
+    type: "tel",
+    placeholder: "(555) 123-4567",
+    required: "",
+    autocomplete: "tel",
+    inputmode: "tel",
+    pattern: "^[0-9()+\\-\\s]{7,}$",
+  });
+  const fCompany = field("company", "Company Name *", {
+    placeholder: "Your Company Inc.",
+    required: "",
+    autocomplete: "organization",
+  });
+  grid2b.append(fPhone.wrap, fCompany.wrap);
 
   // Select: Company Size
-  const sizeWrap = el("div", "space-y-2");
-  const sizeLab = el("label", "", "Company Size");
+  const sizeWrap = el("div", "space-y-1");
+  const sizeLab = el(
+    "label",
+    "text-sm font-medium text-slate-700",
+    "Company Size"
+  );
   sizeLab.setAttribute("for", "employees");
-  const sizeSel = el("select", "w-full rounded-md border px-3 py-2");
+  const sizeSel = el(
+    "select",
+    "w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+  );
   sizeSel.id = "employees";
-  ["1-10", "11-50", "51-100", "101-500", "500+"].forEach((v) => {
-    const opt = el("option", "", `${v} employees`);
+  ["", "1-10", "11-50", "51-100", "101-500", "500+"].forEach((v, i) => {
+    const opt = el(
+      "option",
+      "",
+      i === 0 ? "Select company size…" : `${v} employees`
+    );
     opt.value = v;
+    if (i === 0) opt.selected = true;
     sizeSel.appendChild(opt);
   });
-  sizeSel.addEventListener(
-    "change",
-    () => (formData.employees = sizeSel.value)
-  );
-  sizeWrap.append(sizeLab, sizeSel);
+  const sizeMsg = err("employees-error");
+  sizeWrap.append(sizeLab, sizeSel, sizeMsg);
 
   // Select: Primary IT Challenge
-  const svcWrap = el("div", "space-y-2");
-  const svcLab = el("label", "", "Primary IT Challenge");
+  const svcWrap = el("div", "space-y-1");
+  const svcLab = el(
+    "label",
+    "text-sm font-medium text-slate-700",
+    "Primary IT Challenge"
+  );
   svcLab.setAttribute("for", "service");
-  const svcSel = el("select", "w-full rounded-md border px-3 py-2");
+  const svcSel = el(
+    "select",
+    "w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+  );
   svcSel.id = "service";
   [
     ["", "What's your main IT concern?"],
@@ -396,23 +505,26 @@ export function Booking() {
     if (!val) opt.selected = true;
     svcSel.appendChild(opt);
   });
-  svcSel.addEventListener("change", () => (formData.service = svcSel.value));
-  svcWrap.append(svcLab, svcSel);
+  const svcMsg = err("service-error");
+  svcWrap.append(svcLab, svcSel, svcMsg);
 
   // Radio Group: Priority
-  const priWrap = el("div", "space-y-2");
-  priWrap.append(el("label", "", "Priority Level"));
-  const priRow = el("div", "flex space-x-6");
+  const priFs = el("fieldset", "space-y-2");
+  const priLg = el(
+    "legend",
+    "text-sm font-medium text-slate-700",
+    "Priority Level"
+  );
+  const priRow = el("div", "flex flex-wrap gap-6");
   const pri = (value, label) => {
-    const w = el("label", "flex items-center space-x-2 text-sm cursor-pointer");
+    const w = el("label", "flex items-center gap-2 text-sm cursor-pointer");
     const r = el("input");
     r.type = "radio";
     r.name = "priority";
     r.value = value;
-    if (value === "normal") r.checked = true;
+    r.checked = value === "normal";
     r.addEventListener("change", () => (formData.priority = value));
-    const t = el("span", "", label);
-    w.append(r, t);
+    w.append(r, el("span", "", label));
     return w;
   };
   priRow.append(
@@ -420,15 +532,28 @@ export function Booking() {
     pri("urgent", "Urgent"),
     pri("emergency", "Emergency")
   );
-  priWrap.appendChild(priRow);
+  priFs.append(priLg, priRow);
 
   // Date/Time
-  const grid2c = el("div", "grid grid-cols-2 gap-4");
-  const dateWrap = field("date", "Preferred Date", { type: "date" });
-  const timeWrap = el("div", "space-y-2");
-  const timeLab = el("label", "", "Preferred Time");
-  const timeSel = el("select", "w-full rounded-md border px-3 py-2");
+  const grid2c = el("div", "grid grid-cols-1 sm:grid-cols-2 gap-4");
+  const fDate = field("date", "Preferred Date", {
+    type: "date",
+    min: new Date().toISOString().split("T")[0],
+  });
+  const tWrap = el("div", "space-y-1");
+  const tLab = el(
+    "label",
+    "text-sm font-medium text-slate-700",
+    "Preferred Time"
+  );
+  tLab.setAttribute("for", "time");
+  const timeSel = el(
+    "select",
+    "w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+  );
+  timeSel.id = "time";
   [
+    "",
     "9:00 AM",
     "10:00 AM",
     "11:00 AM",
@@ -436,33 +561,25 @@ export function Booking() {
     "2:00 PM",
     "3:00 PM",
     "4:00 PM",
-  ].forEach((t) => {
-    const opt = el("option", "", t);
-    opt.value = t.toLowerCase().replace(" ", "");
+  ].forEach((t, i) => {
+    const opt = el("option", "", i === 0 ? "Select a time…" : t);
+    opt.value = i === 0 ? "" : t.toLowerCase().replace(/\s/g, "");
+    if (i === 0) opt.selected = true;
     timeSel.appendChild(opt);
   });
-  timeSel.addEventListener("change", () => (formData.time = timeSel.value));
-  timeWrap.append(timeLab, timeSel);
-
-  grid2c.append(dateWrap, timeWrap);
+  const timeMsg = err("time-error");
+  tWrap.append(tLab, timeSel, timeMsg);
+  grid2c.append(fDate.wrap, tWrap);
 
   // Message
-  const msgWrap = el("div", "space-y-2");
-  const msgLab = el("label", "", "Additional Details");
-  msgLab.setAttribute("for", "message");
-  const msg = document.createElement("textarea");
-  msg.id = "message";
-  msg.className = "w-full rounded-md border px-3 py-2";
-  msg.rows = 4;
-  msg.placeholder =
+  const fMsg = field("message", "Additional Details", {}, "textarea");
+  fMsg.input.placeholder =
     "Please describe your current IT setup and any specific challenges you're facing...";
-  msg.addEventListener("input", (e) => (formData.message = e.target.value));
-  msgWrap.append(msgLab, msg);
 
   // Submit
   const submit = el(
     "button",
-    "w-full text-lg py-6 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold",
+    "btn-lg w-full text-lg py-6 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600",
     "Schedule Free Consultation"
   );
   submit.type = "submit";
@@ -479,16 +596,126 @@ export function Booking() {
     grid2b,
     sizeWrap,
     svcWrap,
-    priWrap,
+    priFs,
     grid2c,
-    msgWrap,
+    fMsg.wrap,
     submit,
     disclaimer
   );
-
   formBody.appendChild(form);
   formCard.append(formHeader, formBody);
   twoCol.appendChild(formCard);
+
+  // ----- Wire up value sync -----
+  const bind = (f, key) =>
+    f.input.addEventListener("input", (e) => (formData[key] = e.target.value));
+  bind(fName, "name");
+  bind(fEmail, "email");
+  bind(fPhone, "phone");
+  bind(fCompany, "company");
+  sizeSel.addEventListener(
+    "change",
+    () => (formData.employees = sizeSel.value)
+  );
+  svcSel.addEventListener("change", () => (formData.service = svcSel.value));
+  fDate.input.addEventListener(
+    "change",
+    () => (formData.date = fDate.input.value)
+  );
+  timeSel.addEventListener("change", () => (formData.time = timeSel.value));
+  fMsg.input.addEventListener(
+    "input",
+    (e) => (formData.message = e.target.value)
+  );
+
+  // ----- Validation -----
+  const validate = () => {
+    let ok = true;
+    const focusables = [];
+
+    // Name
+    if (!fName.input.value.trim()) {
+      setInvalid(fName.input, fName.msg, "Please enter your full name.");
+      ok = false;
+      focusables.push(fName.input);
+    } else clearInvalid(fName.input, fName.msg);
+
+    // Email
+    if (
+      !fEmail.input.value.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fEmail.input.value)
+    ) {
+      setInvalid(
+        fEmail.input,
+        fEmail.msg,
+        "Please enter a valid business email."
+      );
+      ok = false;
+      focusables.push(fEmail.input);
+    } else clearInvalid(fEmail.input, fEmail.msg);
+
+    // Phone
+    if (
+      !fPhone.input.value.trim() ||
+      !/^[0-9()+\-.\s]{7,}$/.test(fPhone.input.value)
+    ) {
+      setInvalid(
+        fPhone.input,
+        fPhone.msg,
+        "Please enter a valid phone number."
+      );
+      ok = false;
+      focusables.push(fPhone.input);
+    } else clearInvalid(fPhone.input, fPhone.msg);
+
+    // Company
+    if (!fCompany.input.value.trim()) {
+      setInvalid(
+        fCompany.input,
+        fCompany.msg,
+        "Please enter your company name."
+      );
+      ok = false;
+      focusables.push(fCompany.input);
+    } else clearInvalid(fCompany.input, fCompany.msg);
+
+    // Optional selects (no error if blank), but keep tidy
+    clearInvalid(sizeSel, sizeMsg);
+    clearInvalid(svcSel, svcMsg);
+    clearInvalid(timeSel, timeMsg);
+
+    return { ok, focusTarget: focusables[0] || null };
+  };
+
+  // ----- Submit -----
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const { ok, focusTarget } = validate();
+    if (!ok) {
+      formAlert.className = "mb-4 rounded-md p-4 bg-red-50 text-red-700";
+      formAlert.textContent =
+        "Please fix the highlighted fields and try again.";
+      (focusTarget || form).focus();
+      return;
+    }
+
+    const payload = { ...formData, tier: selectedTier };
+    console.log("Booking submitted:", payload);
+
+    // Success UI
+    formAlert.className = "mb-4 rounded-md p-4 bg-green-50 text-green-800";
+    formAlert.textContent =
+      "Consultation request submitted! Our team will contact you within 2 business hours.";
+    formAlert.focus();
+
+    form.reset();
+    // Reset internal state (keep selectedTier)
+    Object.keys(formData).forEach((k) => (formData[k] = ""));
+    formData.priority = "normal";
+    sizeSel.value = "";
+    svcSel.value = "";
+    timeSel.value = "";
+  });
 
   return section;
 }

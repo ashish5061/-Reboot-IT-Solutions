@@ -1,141 +1,176 @@
+// components/footer.js — professional, accessible, mobile-first (S20 Ultra tuned)
 export function Footer() {
+  const el = (tag, cls = "", txt = "") => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt) e.textContent = txt;
+    return e;
+  };
+
   const footer = document.createElement("footer");
-  footer.className = "bg-gray-900 text-white";
+  footer.className = "relative bg-gray-900 text-white";
+  footer.setAttribute("aria-labelledby", "footer-heading");
 
-  const container = document.createElement("div");
-  container.className = "container mx-auto px-6 py-12";
+  // Local styles (fluid type & S20 Ultra adjustments)
+  const style = document.createElement("style");
+  style.textContent = `
+    #footer .h-brand   { font-size: clamp(1rem, 2.4vw, 1.25rem); }
+    #footer .h-title   { font-size: clamp(1rem, 2.2vw, 1.125rem); }
+    #footer .t-body    { font-size: clamp(.9375rem, 1.8vw, 1rem); }
+    #footer .muted     { color: rgb(203 213 225); }         /* slate-300-ish for contrast */
+    #footer .muted-2   { color: rgb(148 163 184); }         /* slate-400-ish */
+    #footer a:where(:not(.btn)) { outline: none; }
+    #footer a:where(:not(.btn)):focus-visible {
+      box-shadow: 0 0 0 2px rgb(59 130 246 / .9), 0 0 0 4px rgb(17 24 39); /* blue ring, gray-900 offset */
+      border-radius: .375rem;
+    }
+    @media (max-width: 412px) {
+      #footer .p-wrap { padding-top: 56px; padding-bottom: 56px; }
+      #footer .gap-grid { row-gap: 20px; }
+      #footer .brand-wrap { gap: .5rem; }
+    }
+  `;
+  footer.id = "footer";
+  footer.appendChild(style);
 
-  const grid = document.createElement("div");
-  grid.className = "grid md:grid-cols-4 gap-8";
+  const container = el("div", "container mx-auto px-6 p-wrap py-12");
+  footer.appendChild(container);
+
+  // Grid
+  const grid = el("div", "grid grid-cols-1 md:grid-cols-4 gap-8 gap-grid");
 
   // --- Company Info ---
-  const companyDiv = document.createElement("div");
-  companyDiv.className = "md:col-span-2";
+  const companyDiv = el("section", "md:col-span-2");
+  companyDiv.setAttribute("aria-labelledby", "footer-heading");
 
-  const brand = document.createElement("div");
-  brand.className = "flex items-center space-x-3 mb-4";
+  const heading = el("h2", "sr-only", "About Reboot IT Solutions");
+  heading.id = "footer-heading";
+  companyDiv.appendChild(heading);
 
-  const brandIcon = document.createElement("div");
-  brandIcon.className =
-    "flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-lg"; // solid blue background
+  const brand = el("div", "flex items-center brand-wrap space-x-3 mb-4");
+  const brandLink = el(
+    "a",
+    "inline-flex items-center gap-3 focus-visible:outline-none"
+  );
+  brandLink.href = "#home";
+  brandLink.setAttribute("aria-label", "Reboot IT Solutions home");
 
-  const brandLetter = document.createElement("span");
-  brandLetter.className = "font-bold text-white text-xl";
-  brandLetter.textContent = "R";
+  const brandIcon = el(
+    "span",
+    "flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg"
+  );
+  const brandLetter = el("span", "font-bold text-white text-xl", "R");
+  brandLetter.setAttribute("aria-hidden", "true");
   brandIcon.appendChild(brandLetter);
 
-  const brandTextWrap = document.createElement("div");
+  const brandTextWrap = el("span");
+  const brandName = el(
+    "span",
+    "h-brand block font-semibold",
+    "Reboot IT Solutions"
+  );
+  const brandSub = el(
+    "span",
+    "block text-xs muted-2",
+    "Professional IT Services"
+  );
+  brandTextWrap.append(brandName, brandSub);
 
-  const brandName = document.createElement("div");
-  brandName.className = "font-bold text-xl";
-  brandName.textContent = "Reboot IT Solutions";
+  brandLink.append(brandIcon, brandTextWrap);
+  brand.appendChild(brandLink);
 
-  const brandSub = document.createElement("div");
-  brandSub.className = "text-xs text-gray-400";
-  brandSub.textContent = "Professional IT Services";
+  const desc1 = el(
+    "p",
+    "t-body muted mb-4 max-w-md",
+    "Your trusted IT partner specializing in PC repair, troubleshooting, and remote IT help for small businesses. We keep your technology running smoothly."
+  );
+  const desc2 = el(
+    "p",
+    "text-sm muted-2",
+    "Licensed and insured • Certified technicians • Serving the metro area since 2015"
+  );
 
-  brandTextWrap.appendChild(brandName);
-  brandTextWrap.appendChild(brandSub);
+  companyDiv.append(brand, desc1, desc2);
 
-  brand.appendChild(brandIcon);
-  brand.appendChild(brandTextWrap);
-
-  const desc1 = document.createElement("p");
-  desc1.className = "text-gray-300 mb-4 max-w-md";
-  desc1.textContent =
-    "Your trusted IT partner specializing in PC repair, troubleshooting, and remote IT help for small businesses. We keep your technology running smoothly.";
-
-  const desc2 = document.createElement("p");
-  desc2.className = "text-gray-400 text-sm";
-  desc2.textContent =
-    "Licensed and insured • Certified technicians • Serving the metro area since 2015";
-
-  companyDiv.appendChild(brand);
-  companyDiv.appendChild(desc1);
-  companyDiv.appendChild(desc2);
-
-  // --- Quick Links ---
-  const quickLinksDiv = document.createElement("div");
-  const quickTitle = document.createElement("h4");
-  quickTitle.className = "font-semibold mb-4";
-  quickTitle.textContent = "Quick Links";
-  const quickList = document.createElement("ul");
-  quickList.className = "space-y-2 text-gray-300";
-  const quickLinks = [
+  // --- Quick Links (nav) ---
+  const quickLinksDiv = el("nav");
+  quickLinksDiv.setAttribute("aria-labelledby", "footer-quick");
+  const quickTitle = el("h3", "h-title font-semibold mb-4", "Quick Links");
+  quickTitle.id = "footer-quick";
+  const quickList = el("ul", "space-y-2");
+  [
     { text: "Home", href: "#home" },
     { text: "Services", href: "#services" },
     { text: "Booking", href: "#booking" },
     { text: "FAQ", href: "#faq" },
     { text: "Contact", href: "#contact" },
-  ];
-  quickLinks.forEach((link) => {
+  ].forEach(({ text, href }) => {
     const li = document.createElement("li");
-    const a = document.createElement("a");
-    a.href = link.href;
-    a.className = "hover:text-white transition-colors";
-    a.textContent = link.text;
+    const a = el("a", "t-body muted hover:text-white transition-colors", text);
+    a.href = href;
     li.appendChild(a);
     quickList.appendChild(li);
   });
-  quickLinksDiv.appendChild(quickTitle);
-  quickLinksDiv.appendChild(quickList);
+  quickLinksDiv.append(quickTitle, quickList);
 
-  // --- Services ---
-  const servicesDiv = document.createElement("div");
-  const servicesTitle = document.createElement("h4");
-  servicesTitle.className = "font-semibold mb-4";
-  servicesTitle.textContent = "Services";
-  const servicesList = document.createElement("ul");
-  servicesList.className = "space-y-2 text-gray-300";
-  const services = [
+  // --- Services (nav) ---
+  const servicesDiv = el("nav");
+  servicesDiv.setAttribute("aria-labelledby", "footer-services");
+  const servicesTitle = el("h3", "h-title font-semibold mb-4", "Services");
+  servicesTitle.id = "footer-services";
+  const servicesList = el("ul", "space-y-2");
+  [
     "PC Repair",
     "Remote Support",
     "Network Setup",
     "Virus Removal",
     "Maintenance Plans",
-  ];
-  services.forEach((service) => {
+  ].forEach((label) => {
     const li = document.createElement("li");
-    const span = document.createElement("span");
-    span.className = "hover:text-white transition-colors";
-    span.textContent = service;
-    li.appendChild(span);
+    const a = el("a", "t-body muted hover:text-white transition-colors", label);
+    a.href = "#services";
+    li.appendChild(a);
     servicesList.appendChild(li);
   });
-  servicesDiv.appendChild(servicesTitle);
-  servicesDiv.appendChild(servicesList);
+  servicesDiv.append(servicesTitle, servicesList);
 
-  // Append all sections to grid
-  grid.appendChild(companyDiv);
-  grid.appendChild(quickLinksDiv);
-  grid.appendChild(servicesDiv);
+  grid.append(companyDiv, quickLinksDiv, servicesDiv);
+  container.appendChild(grid);
 
   // --- Footer bottom ---
-  const bottom = document.createElement("div");
-  bottom.className =
-    "flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm mt-8";
+  const bottom = el(
+    "div",
+    "mt-10 border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center text-sm muted"
+  );
 
-  const copyright = document.createElement("p");
-  copyright.textContent = "© 2025 Reboot IT Solutions. All rights reserved.";
+  const copyright = el("p");
+  const yearSpan = el("span");
+  yearSpan.textContent = new Date().getFullYear().toString();
+  // “© {year} Reboot IT Solutions. All rights reserved.”
+  copyright.append(
+    document.createTextNode("© "),
+    yearSpan,
+    document.createTextNode(" Reboot IT Solutions. All rights reserved.")
+  );
 
-  const policyDiv = document.createElement("div");
-  policyDiv.className = "flex space-x-6 mt-4 md:mt-0";
-
-  const policies = ["Privacy Policy", "Terms of Service", "Support"];
-  policies.forEach((text) => {
-    const span = document.createElement("span");
-    span.className = "hover:text-white transition-colors cursor-pointer";
-    span.textContent = text;
-    policyDiv.appendChild(span);
+  const policyNav = el("nav", "mt-4 md:mt-0");
+  policyNav.setAttribute("aria-label", "Legal");
+  const policyList = el("ul", "flex items-center gap-6");
+  [
+    { text: "Privacy Policy", href: "/privacy" },
+    { text: "Terms of Service", href: "/terms" },
+    { text: "Support", href: "#contact" },
+  ].forEach(({ text, href }) => {
+    const li = document.createElement("li");
+    const a = el("a", "t-body muted hover:text-white transition-colors", text);
+    a.href = href;
+    li.appendChild(a);
+    policyList.appendChild(li);
   });
+  policyNav.appendChild(policyList);
 
-  bottom.appendChild(copyright);
-  bottom.appendChild(policyDiv);
-
-  // Assemble footer
-  container.appendChild(grid);
+  bottom.append(copyright, policyNav);
   container.appendChild(bottom);
-  footer.appendChild(container);
 
   return footer;
 }
